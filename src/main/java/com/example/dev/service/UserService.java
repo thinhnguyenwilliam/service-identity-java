@@ -3,21 +3,26 @@ package com.example.dev.service;
 import com.example.dev.dto.request.UserCreationRequest;
 import com.example.dev.dto.request.UserUpdateRequest;
 import com.example.dev.entity.User;
+import com.example.dev.exception.AppException;
+import com.example.dev.enums.ErrorCode;
 import com.example.dev.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class UserService {
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public User createUserRequest(UserCreationRequest request) {
         User user = new User();
         if(userRepository.existsByUsername(request.getUsername()))
-            throw new RuntimeException("Username already exists");
+//            throw new AppException(ErrorCode.USER_EXISTED);
+            throw new RuntimeException("ErrorCode.USER_EXISTED");
 
         user.setUsername(request.getUsername());
         user.setPassword(request.getPassword());

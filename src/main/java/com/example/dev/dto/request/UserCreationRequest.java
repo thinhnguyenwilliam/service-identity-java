@@ -12,11 +12,11 @@ import java.time.LocalDate;
 @Setter
 public class UserCreationRequest {
 
-    @NotBlank(message = "Username is required")
+    @Size(min = 3, message = "USER_INVALIDs")
     private String username;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters long")
+
+    @Size(min = 6, message = "PASSWORD_INVALIDs")
     private String password;
 
     @NotBlank(message = "First name is required")
@@ -24,7 +24,6 @@ public class UserCreationRequest {
 
     private String lastName;
 
-    @NotNull(message = "Date of birth is required")
     private LocalDate dob;
 
 }

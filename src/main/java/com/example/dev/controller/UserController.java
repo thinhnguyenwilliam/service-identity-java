@@ -3,6 +3,7 @@ package com.example.dev.controller;
 
 import com.example.dev.dto.request.UserCreationRequest;
 import com.example.dev.dto.request.UserUpdateRequest;
+import com.example.dev.dto.response.ApiResponse;
 import com.example.dev.entity.User;
 import com.example.dev.service.UserService;
 import jakarta.validation.Valid;
@@ -21,8 +22,11 @@ public class UserController
     }
 
     @PostMapping
-    User createUser(@Valid @RequestBody UserCreationRequest request) {
-        return userService.createUserRequest(request);
+    ApiResponse<User> createUser(@Valid @RequestBody UserCreationRequest request) {
+        ApiResponse<User> apiResponse = new ApiResponse<>();
+
+        apiResponse.setResult(userService.createUserRequest(request));
+        return apiResponse;
     }
 
     @GetMapping

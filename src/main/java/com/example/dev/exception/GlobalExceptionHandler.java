@@ -1,5 +1,7 @@
 package com.example.dev.exception;
 
+import com.example.dev.dto.response.ApiResponse;
+import com.example.dev.enums.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,21 +14,49 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(value = RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body("A runtime exception occurred: " + ex.getMessage());
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex) {
+        ApiResponse<Object> response = new ApiResponse<>();
+        response.setCode(ErrorCode.UNCATEGORIZED.getCode());
+        response.setMessage("An exception occurred: " + ErrorCode.UNCATEGORIZED.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
-        return ResponseEntity.badRequest().body(errors);
+        for (var fieldError : ex.getBindingResult().getFieldErrors()) {
+            String enumKey = fieldError.getDefaultMessage();
+
+            ErrorCode errorCode;
+            try {
+                errorCode = ErrorCode.valueOf(enumKey);
+            } catch (IllegalArgumentException e) {
+                errorCode = ErrorCode.INVALID_KEY_ENUM;
+            }
+
+            errors.put(fieldError.getField(), errorCode.getMessage());
+        }
+
+        ApiResponse<Map<String, String>> response = new ApiResponse<>();
+        response.setCode(ErrorCode.UNCATEGORIZED.getCode());
+        response.setMessage("Validation failed");
+        response.setResult(errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+
+    @ExceptionHandler(value = AppException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAppException(AppException ex) {
+        ErrorCode errorCode = ex.getErrorCode();
+
+        ApiResponse<Object> response = new ApiResponse<>();
+        response.setCode(errorCode.getCode());
+        response.setMessage("An appException exception occurred: " + errorCode.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
 
 

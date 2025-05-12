@@ -1,9 +1,7 @@
-package com.example.dev.dto.request;
+package com.example.dev.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -11,10 +9,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserUpdateRequest
-{
+public class UserResponse {
+    String id;
     String username;
     String firstName;
     String lastName;
-    LocalDate dob;
+    String dob;
 }

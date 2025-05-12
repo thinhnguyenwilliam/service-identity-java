@@ -1,29 +1,32 @@
 package com.example.dev.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserCreationRequest {
 
-    @Size(min = 3, message = "USER_INVALIDs")
-    private String username;
+    @Size(min = 3, message = "USER_INVALID")
+    String username;
 
 
-    @Size(min = 6, message = "PASSWORD_INVALIDs")
-    private String password;
+    @Size(min = 6, message = "PASSWORD_INVALID")
+    String password;
 
     @NotBlank(message = "First name is required")
-    private String firstName;
+    String firstName;
 
-    private String lastName;
+    String lastName;
 
-    private LocalDate dob;
+    LocalDate dob;
 
 }

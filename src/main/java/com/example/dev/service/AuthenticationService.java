@@ -1,7 +1,9 @@
 package com.example.dev.service;
 
 import com.example.dev.dto.request.AuthenticationRequest;
+import com.example.dev.dto.request.IntrospectRequest;
 import com.example.dev.dto.response.AuthenticationResponse;
+import com.example.dev.dto.response.IntrospectResponse;
 import com.example.dev.entity.User;
 import com.example.dev.enums.ErrorCode;
 import com.example.dev.exception.AppException;
@@ -11,12 +13,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.*;
 import com.nimbusds.jwt.*;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -30,8 +34,24 @@ public class AuthenticationService {
     PasswordEncoder passwordEncoder;
 
     @NonFinal
-    private static final String SECRET ="YTJqdRD3fVs4s11groDPXypfQj3skk0x+pU4FV7M2sA=";
+    @Value("${jwt.secretKey}")
+    private String secret;
 
+
+    public IntrospectResponse introspect(IntrospectRequest request)
+            throws JOSEException, ParseException
+    {
+        String token = request.getToken();
+        JWSVerifier verifier = new MACVerifier(secret.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean verified = signedJWT.verify(verifier);
+        boolean valid = verified && expiryTime != null && expiryTime.after(new Date());
+
+        return IntrospectResponse.builder()
+                .valid(valid)
+                .build();
+    }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
@@ -50,7 +70,7 @@ public class AuthenticationService {
     }
 
     private String generateToken(String username) {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256); // HS512 can't run a program
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(username)
@@ -67,7 +87,7 @@ public class AuthenticationService {
         JWSObject jwsObject = new JWSObject(header, payload);
 
         try {
-            jwsObject.sign(new MACSigner(SECRET.getBytes()));
+            jwsObject.sign(new MACSigner(secret.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
             log.error("Cannot create token", e);

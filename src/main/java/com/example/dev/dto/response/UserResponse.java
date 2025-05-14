@@ -3,6 +3,8 @@ package com.example.dev.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,4 +17,5 @@ public class UserResponse {
     String firstName;
     String lastName;
     String dob;
+    Set<String> roles;
 }

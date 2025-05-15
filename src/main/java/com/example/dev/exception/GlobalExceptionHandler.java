@@ -74,8 +74,4 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getStatusCode())
                 .body(response);
     }
-
-    //401
-
-
 }

@@ -4,6 +4,8 @@ import com.example.dev.dto.response.ApiResponse;
 import com.example.dev.enums.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -55,9 +57,25 @@ public class GlobalExceptionHandler {
         ApiResponse<Object> response = new ApiResponse<>();
         response.setCode(errorCode.getCode());
         response.setMessage("An appException exception occurred: " + errorCode.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
+                .body(response);
     }
 
+    // 403
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
+    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(RuntimeException ex) {
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+
+        ApiResponse<Object> response = new ApiResponse<>();
+        response.setCode(errorCode.getCode());
+        response.setMessage("Access denied: " + errorCode.getMessage());
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
+                .body(response);
+    }
+
+    //401
 
 
 }

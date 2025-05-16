@@ -1,15 +1,11 @@
 package com.example.dev.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 import java.util.Set;
-
 
 @Entity
 @Getter
@@ -18,7 +14,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User extends Auditable{
+public class User extends Auditable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
@@ -29,6 +26,11 @@ public class User extends Auditable{
     String lastName;
     LocalDate dob;
 
-    // this system uses: 1 user can gain many roles
-    Set<String> roles;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_name")
+    )
+    Set<Role> roles;
 }

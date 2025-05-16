@@ -2,6 +2,7 @@ package com.example.dev.exception;
 
 import com.example.dev.dto.response.ApiResponse;
 import com.example.dev.enums.ErrorCode;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,6 +23,14 @@ public class GlobalExceptionHandler {
         response.setCode(ErrorCode.UNCATEGORIZED.getCode());
         response.setMessage("An exception occurred: " + ErrorCode.UNCATEGORIZED.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        ApiResponse<Object> response = new ApiResponse<>();
+        response.setCode(ErrorCode.DATA_INTEGRITY.getCode());
+        response.setMessage("Data integrity violation: " + ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
 

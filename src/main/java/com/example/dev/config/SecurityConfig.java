@@ -64,7 +64,7 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
-        converter.setAuthorityPrefix("ROLE_"); // default
+        converter.setAuthorityPrefix(""); // default
         converter.setAuthoritiesClaimName("roles"); // or "scp" or whatever your JWT uses
 
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();

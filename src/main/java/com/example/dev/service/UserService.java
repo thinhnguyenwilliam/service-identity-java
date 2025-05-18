@@ -8,6 +8,7 @@ import com.example.dev.enums.ErrorCode;
 import com.example.dev.enums.Role;
 import com.example.dev.exception.AppException;
 import com.example.dev.mapper.UserMapper;
+import com.example.dev.repository.RoleRepository;
 import com.example.dev.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
+    RoleRepository roleRepository;
 
 
     public UserResponse createUser(UserCreationRequest request) {
@@ -49,7 +51,9 @@ public class UserService {
         return userMapper.toUserResponse(savedUser);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasAnyAuthority('READ_DATA', 'ADMIN', 'SUPERUSER')")
+    @PreAuthorize("hasAuthority('READ_DATA')")
     public List<UserResponse> getUsers() {
         log.info("Getting all users by admin");
         return userRepository.findAll().stream()
@@ -67,6 +71,11 @@ public class UserService {
         User user = userRepository.findById(id)
                         .orElseThrow(() -> new RuntimeException("User not found bro"));
         userMapper.updateUser(user, request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        List<com.example.dev.entity.Role> roles=roleRepository.findAllById(request.getRoles());
+        user.setRoles(new HashSet<>(roles));
+
         return userMapper.toUserResponse(userRepository.save(user));
     }
 

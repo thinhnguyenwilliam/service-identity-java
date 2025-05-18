@@ -6,11 +6,12 @@ import com.example.dev.entity.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
-public interface RoleMapper
-{
-    @Mapping(target = "permissions", ignore = true) // We will set this manually in the service
+@Mapper(componentModel = "spring", uses = PermissionMapper.class)
+public interface RoleMapper {
+
+    @Mapping(target = "permissions", ignore = true) // mapping from request to entity
     Role toRole(RoleRequest request);
 
+    // This will automatically map Set<Permission> → Set<PermissionResponse>
     RoleResponse toRoleResponse(Role role);
 }

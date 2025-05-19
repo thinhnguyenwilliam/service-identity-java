@@ -16,7 +16,8 @@ public enum ErrorCode {
     UNAUTHENTICATED(1008,"Unauthenticated bro",HttpStatus.UNAUTHORIZED),
     PASSWORD_INVALID(1005,"Password must be at least 6 characters long ha ha", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHORIZED(1008,"You do not have permission", HttpStatus.FORBIDDEN),
-    DATA_INTEGRITY(1009,"Many to Many relationship", HttpStatus.INTERNAL_SERVER_ERROR)
+    DATA_INTEGRITY(1009,"Many to Many relationship", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_DOB(1010,"User must be at least xxx years old", HttpStatus.BAD_REQUEST)
     ;
 
     private final int code;

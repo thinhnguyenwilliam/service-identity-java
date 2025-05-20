@@ -20,7 +20,7 @@ public class UserCreationRequest {
     String username;
 
 
-    @Size(min = 6, message = "PASSWORD_INVALID")
+    @Size(min = 9, message = "PASSWORD_INVALID")
     String password;
 
     @NotBlank(message = "First name is required")
@@ -28,7 +28,7 @@ public class UserCreationRequest {
 
     String lastName;
 
-    @DobConstraint(min = 13, message = "INVALID_DOB")
+    @DobConstraint(min = 18, message = "INVALID_DOB")
     LocalDate dob;
 
 

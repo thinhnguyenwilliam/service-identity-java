@@ -2,11 +2,14 @@ package com.example.dev.service;
 
 import com.example.dev.dto.request.AuthenticationRequest;
 import com.example.dev.dto.request.IntrospectRequest;
+import com.example.dev.dto.request.LogoutRequest;
 import com.example.dev.dto.response.AuthenticationResponse;
 import com.example.dev.dto.response.IntrospectResponse;
+import com.example.dev.entity.InvalidatedToken;
 import com.example.dev.entity.User;
 import com.example.dev.enums.ErrorCode;
 import com.example.dev.exception.AppException;
+import com.example.dev.repository.InvalidatedTokenRepository;
 import com.example.dev.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,26 +38,27 @@ import java.util.StringJoiner;
 public class AuthenticationService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
+    InvalidatedTokenRepository invalidatedTokenRepository;
 
     @NonFinal
     @Value("${jwt.secretKey}")
     private String secret;
 
 
-    public IntrospectResponse introspect(IntrospectRequest request)
-            throws JOSEException, ParseException
-    {
-        String token = request.getToken();
-        JWSVerifier verifier = new MACVerifier(secret.getBytes());
-        SignedJWT signedJWT = SignedJWT.parse(token);
-        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-        boolean verified = signedJWT.verify(verifier);
-        boolean valid = verified && expiryTime != null && expiryTime.after(new Date());
+    public IntrospectResponse introspect(IntrospectRequest request) {
+        try {
+            verifyToken(request.getToken());
 
-        return IntrospectResponse.builder()
-                .valid(valid)
-                .build();
+            return IntrospectResponse.builder()
+                    .valid(true)
+                    .build();
+        } catch (Exception e) {
+            return IntrospectResponse.builder()
+                    .valid(false)
+                    .build();
+        }
     }
+
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
@@ -71,16 +76,54 @@ public class AuthenticationService {
                 .build();
     }
 
+    public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        SignedJWT jwt = verifyToken(request.getToken());  // reuse here
+
+        String jti = jwt.getJWTClaimsSet().getJWTID();
+        Date expiryTime = jwt.getJWTClaimsSet().getExpirationTime();
+
+        if (jti == null || expiryTime == null) {
+            throw new IllegalArgumentException("Invalid token: missing jti or expiration");
+        }
+
+        invalidatedTokenRepository.save(
+                InvalidatedToken.builder()
+                        .id(jti)
+                        .expiryTime(expiryTime)
+                        .build()
+        );
+
+        log.info("Token with jti {} has been invalidated until {}", jti, expiryTime);
+    }
+
+    private SignedJWT verifyToken(String token) throws ParseException, JOSEException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        JWSVerifier verifier = new MACVerifier(secret.getBytes());
+
+        boolean verified = signedJWT.verify(verifier);
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean notExpired = expiryTime != null && expiryTime.after(new Date());
+
+        if (!verified || !notExpired) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        if(invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        return signedJWT;
+    }
+
+
     private String generateToken(User user) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256); // HS512 can't run a program
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                .jwtID(UUID.randomUUID().toString())
                 .subject(user.getUsername())
                 .issuer("william-nguyen")
                 .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
-                ))
+                .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
                 .claim("roles", buildScope(user))
                 .build();
 

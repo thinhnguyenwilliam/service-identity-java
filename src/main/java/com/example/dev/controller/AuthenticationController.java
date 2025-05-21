@@ -2,6 +2,7 @@ package com.example.dev.controller;
 
 import com.example.dev.dto.request.AuthenticationRequest;
 import com.example.dev.dto.request.IntrospectRequest;
+import com.example.dev.dto.request.LogoutRequest;
 import com.example.dev.dto.response.ApiResponse;
 import com.example.dev.dto.response.AuthenticationResponse;
 import com.example.dev.dto.response.IntrospectResponse;
@@ -36,14 +37,29 @@ public class AuthenticationController {
 
     @PostMapping("/introspect")
     ApiResponse<IntrospectResponse> introspectToken(@RequestBody IntrospectRequest request)
-            throws ParseException, JOSEException
     {
         IntrospectResponse res = authenticationService.introspect(request);
-
+        int responseCode = res.isValid() ? 1000 : 7465; // or any other error code
         return ApiResponse.<IntrospectResponse>builder()
-                .code( 1000)
+                .code( responseCode)
+                .message(res.isValid() ? "Token is valid" : "Token is invalid")
                 .result(res)
                 .build();
     }
+
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestBody LogoutRequest request)
+            throws ParseException, JOSEException {
+
+        authenticationService.logout(request);
+
+        return ApiResponse.<Void>builder()
+                .code(1000)
+                .result(null)
+                .message("Logout successful")
+                .build();
+    }
+
 
 }

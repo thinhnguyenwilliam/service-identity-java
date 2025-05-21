@@ -51,9 +51,9 @@ public class UserService {
         return userMapper.toUserResponse(savedUser);
     }
 
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     //@PreAuthorize("hasAnyAuthority('READ_DATA', 'ADMIN', 'SUPERUSER')")
-    @PreAuthorize("hasAuthority('READ_DATA')")
+    //@PreAuthorize("hasAuthority('READ_DATA')")
     public List<UserResponse> getUsers() {
         log.info("Getting all users by admin");
         return userRepository.findAll().stream()

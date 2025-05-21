@@ -9,6 +9,18 @@ spring:
   application:
     name: thinh
 
+
+  # Scheduling (optional, enabled by default if @EnableScheduling is present)
+  # spring.task.scheduling.pool.size — the number of threads available to run scheduled tasks concurrently.
+  # Only one thread will run all scheduled tasks.-->size: 1
+  # Tasks will run sequentially (one at a time).
+  #If you have multiple scheduled tasks and one task takes a long time, the others will wait.
+  # size: 5--> Use up to 5 threads, run scheduled tasks concurrently
+  task:
+    scheduling:
+      pool:
+        size: 1
+
   # Datasource configuration
   datasource:
     url: jdbc:mysql://localhost:3306/identity_service

@@ -21,7 +21,8 @@ public class SecurityConfig {
     private static final String[] PUBLIC_URLS = {
             "/api/auth/token",
             "/api/auth/introspect",
-            "/api/auth/logout"
+            "/api/auth/logout",
+            "/api/auth/refresh"
     };
 
 

@@ -3,6 +3,7 @@ package com.example.dev.service;
 import com.example.dev.dto.request.AuthenticationRequest;
 import com.example.dev.dto.request.IntrospectRequest;
 import com.example.dev.dto.request.LogoutRequest;
+import com.example.dev.dto.request.RefreshTokenRequest;
 import com.example.dev.dto.response.AuthenticationResponse;
 import com.example.dev.dto.response.IntrospectResponse;
 import com.example.dev.entity.InvalidatedToken;
@@ -95,6 +96,36 @@ public class AuthenticationService {
 
         log.info("Token with jti {} has been invalidated until {}", jti, expiryTime);
     }
+
+
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
+        SignedJWT jwt = verifyToken(request.getToken()); // 🔐 Validate the incoming token
+
+        String jti = jwt.getJWTClaimsSet().getJWTID();
+        Date expiryTime = jwt.getJWTClaimsSet().getExpirationTime();
+
+        // ❌ Invalidate the used refresh token (rotation)
+        invalidatedTokenRepository.save(
+                InvalidatedToken.builder()
+                        .id(jti)
+                        .expiryTime(expiryTime)
+                        .build()
+        );
+
+        // 🔍 Load user
+        String userName = jwt.getJWTClaimsSet().getSubject();
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // 🔁 Generate a new access token (and refresh token optionally)
+        String token = generateToken(user);
+
+        return AuthenticationResponse.builder()
+                .authenticated(true)
+                .token(token)
+                .build();
+    }
+
 
     private SignedJWT verifyToken(String token) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);

@@ -22,7 +22,11 @@ public class SecurityConfig {
             "/api/auth/token",
             "/api/auth/introspect",
             "/api/auth/logout",
-            "/api/auth/refresh"
+            "/api/auth/refresh",
+
+            // endpoints are just only unit test
+            "api/users/**",
+            //
     };
 
 

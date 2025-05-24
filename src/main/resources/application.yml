@@ -37,6 +37,6 @@ spring:
 
 # JWT
 jwt:
-  expiration: 3600 # seconds
-  refreshable-duration: 3600
+  valid-expiration: 20
+  refreshable-duration: 120
   secretKey: YTJqdRD3fVs4s11groDPXypfQj3skk0x+pU4FV7M2sA=

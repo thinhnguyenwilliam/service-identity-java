@@ -45,10 +45,19 @@ public class AuthenticationService {
     @Value("${jwt.secretKey}")
     private String secret;
 
+    @NonFinal
+    @Value("${jwt.valid-expiration}")
+    private long validExpiration;
+
+
+    @NonFinal
+    @Value("${jwt.refreshable-duration}")
+    private long refreshableDuration;
+
 
     public IntrospectResponse introspect(IntrospectRequest request) {
         try {
-            verifyToken(request.getToken());
+            verifyToken(request.getToken(),false);
 
             return IntrospectResponse.builder()
                     .valid(true)
@@ -78,7 +87,7 @@ public class AuthenticationService {
     }
 
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
-        SignedJWT jwt = verifyToken(request.getToken());  // reuse here
+        SignedJWT jwt = verifyToken(request.getToken(),true);  // reuse here
 
         String jti = jwt.getJWTClaimsSet().getJWTID();
         Date expiryTime = jwt.getJWTClaimsSet().getExpirationTime();
@@ -99,7 +108,7 @@ public class AuthenticationService {
 
 
     public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
-        SignedJWT jwt = verifyToken(request.getToken()); // 🔐 Validate the incoming token
+        SignedJWT jwt = verifyToken(request.getToken(), true); // 🔐 Validate the incoming token
 
         String jti = jwt.getJWTClaimsSet().getJWTID();
         Date expiryTime = jwt.getJWTClaimsSet().getExpirationTime();
@@ -127,12 +136,15 @@ public class AuthenticationService {
     }
 
 
-    private SignedJWT verifyToken(String token) throws ParseException, JOSEException {
+    private SignedJWT verifyToken(String token, boolean isRefresh) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);
         JWSVerifier verifier = new MACVerifier(secret.getBytes());
 
         boolean verified = signedJWT.verify(verifier);
-        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        Date expiryTime = isRefresh
+                ? Date.from(signedJWT.getJWTClaimsSet().getIssueTime().toInstant().plusSeconds(refreshableDuration))
+                : signedJWT.getJWTClaimsSet().getExpirationTime();
+
         boolean notExpired = expiryTime != null && expiryTime.after(new Date());
 
         if (!verified || !notExpired) {
@@ -154,7 +166,7 @@ public class AuthenticationService {
                 .subject(user.getUsername())
                 .issuer("william-nguyen")
                 .issueTime(new Date())
-                .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                .expirationTime(Date.from(Instant.now().plusSeconds(validExpiration)))
                 .claim("roles", buildScope(user))
                 .build();
 

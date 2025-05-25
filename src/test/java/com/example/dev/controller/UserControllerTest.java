@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
@@ -31,7 +32,7 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private UserService userService;  // This will be the mock
+    private UserService userService;
 
     @TestConfiguration
     static class TestConfig {
@@ -80,8 +81,32 @@ class UserControllerTest {
                         .content(content))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(1000))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.result.id").value("cf0600f538b3"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.result.id").value("cf0600f538b3"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.result.username").value("john"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.result.lastName").value("Doe"));
     }
+
+
+    @Test
+    void createUser_invalidRequest_fail() throws Exception {
+        request.setUsername("M"); // Assume validation requires more than 3 chars
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        String content = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(content))
+                .andDo(MockMvcResultHandlers.print()) // Helpful during debugging
+                .andExpect(MockMvcResultMatchers.status().isBadRequest()) // <-- if it's a validation error
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(1003))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Validation failed"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.result.username")
+                        .value("Username must be at least 3 characters long hi hi"));
+    }
+
 
 
 

@@ -5,6 +5,7 @@ import com.example.dev.enums.Role;
 import com.example.dev.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,11 @@ import java.util.HashSet;
 public class ApplicationInitConfig {
 
     @Bean
+    @ConditionalOnProperty(
+            prefix = "spring.datasource",
+            name = "driver-class-name",
+            havingValue = "com.mysql.cj.jdbc.Driver"
+    )
     ApplicationRunner applicationRunner(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder
@@ -23,6 +29,7 @@ public class ApplicationInitConfig {
     )
     {
         return args -> {
+            log.info("Initializing application bro");
             if (userRepository.findByUsername("admin").isEmpty()) {
                 var roles = new HashSet<String>();
                 roles.add(Role.ADMIN.name());

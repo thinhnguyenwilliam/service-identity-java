@@ -15,15 +15,24 @@ import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.TestPropertySource;
+import org.junit.jupiter.api.AfterEach;
+
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
+@TestPropertySource(locations = "classpath:test.yml")
 class UserServiceTest {
 
     @Mock
@@ -69,6 +78,12 @@ class UserServiceTest {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+
     @Test
     void createUser_validRequest_success() {
         when(userMapper.toUser(any(UserCreationRequest.class))).thenReturn(userEntity);
@@ -100,5 +115,39 @@ class UserServiceTest {
         Assertions.assertThat(exception.getErrorCode().getCode()).isEqualTo(1002);
     }
 
+    @Test
+    void getMyInfo_shouldReturnUserResponse_whenUserExists() {
+        // Arrange
+
+        // 1. Mock SecurityContextHolder
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("testuser");
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // 2. Mock repository and mapper
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(userEntity));
+        when(userMapper.toUserResponse(userEntity)).thenReturn(userResponse);
+
+        // Act
+        UserResponse response = userService.getMyInfo();
+
+        // Assert
+        Assertions.assertThat(response.getId()).isEqualTo("cf0600f538b3");
+        Assertions.assertThat(response.getUsername()).isEqualTo("john");
+    }
+
+
+//    @Test
+//    void getMyInfo_shouldThrowException_whenUserNotFound() {
+//        // Arrange
+//        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
+//
+//        // Act & Assert
+//        AppException exception = assertThrows(AppException.class, () -> userService.getMyInfo());
+//        assertEquals(ErrorCode.USER_NOT_EXISTED, exception.getErrorCode());
+//    }
 }
 

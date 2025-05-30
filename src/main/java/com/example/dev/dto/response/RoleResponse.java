@@ -1,9 +1,8 @@
 package com.example.dev.dto.response;
 
+import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @Getter
 @Setter
@@ -12,8 +11,8 @@ import java.util.Set;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RoleResponse {
-    String name;
-    String description;
+  String name;
+  String description;
 
-    Set<PermissionResponse> permissions;
+  Set<PermissionResponse> permissions;
 }

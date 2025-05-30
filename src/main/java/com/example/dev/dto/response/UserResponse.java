@@ -1,9 +1,8 @@
 package com.example.dev.dto.response;
 
+import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @Getter
 @Setter
@@ -12,10 +11,10 @@ import java.util.Set;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserResponse {
-    String id;
-    String username;
-    String firstName;
-    String lastName;
-    String dob;
-    Set<RoleResponse> roles;
+  String id;
+  String username;
+  String firstName;
+  String lastName;
+  String dob;
+  Set<RoleResponse> roles;
 }

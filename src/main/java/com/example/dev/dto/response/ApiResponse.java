@@ -11,12 +11,10 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse<T>
-{
-    //@Builder.Default
-    Integer code = 1000; // 1000 means success
+public class ApiResponse<T> {
+  // @Builder.Default
+  Integer code = 1000; // 1000 means success
 
-
-    String message;
-    T result;
+  String message;
+  T result;
 }

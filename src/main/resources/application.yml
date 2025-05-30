@@ -37,6 +37,6 @@ spring:
 
 # JWT
 jwt:
-  valid-expiration: 20
-  refreshable-duration: 120
+  valid-expiration: 3600        # 60 minutes = 60 * 60 = 3600
+  refreshable-duration: 86400  # 1 day = 24 * 60 * 60 = 86400
   secretKey: YTJqdRD3fVs4s11groDPXypfQj3skk0x+pU4FV7M2sA=

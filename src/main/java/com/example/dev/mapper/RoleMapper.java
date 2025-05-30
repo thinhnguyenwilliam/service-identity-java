@@ -9,9 +9,9 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = PermissionMapper.class)
 public interface RoleMapper {
 
-    @Mapping(target = "permissions", ignore = true) // mapping from request to entity
-    Role toRole(RoleRequest request);
+  @Mapping(target = "permissions", ignore = true) // mapping from request to entity
+  Role toRole(RoleRequest request);
 
-    // This will automatically map Set<Permission> → Set<PermissionResponse>
-    RoleResponse toRoleResponse(Role role);
+  // This will automatically map Set<Permission> → Set<PermissionResponse>
+  RoleResponse toRoleResponse(Role role);
 }

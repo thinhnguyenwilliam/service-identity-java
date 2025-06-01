@@ -1,11 +1,12 @@
 package com.example.dev.service;
 
+import com.example.dev.constant.PredefinedRole;
 import com.example.dev.dto.request.UserCreationRequest;
 import com.example.dev.dto.request.UserUpdateRequest;
 import com.example.dev.dto.response.UserResponse;
+import com.example.dev.entity.Role;
 import com.example.dev.entity.User;
 import com.example.dev.enums.ErrorCode;
-import com.example.dev.enums.Role;
 import com.example.dev.exception.AppException;
 import com.example.dev.mapper.UserMapper;
 import com.example.dev.repository.RoleRepository;
@@ -41,9 +42,10 @@ public class UserService {
     User user = userMapper.toUser(request);
     user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-    Set<String> roles = new HashSet<>();
-    roles.add(Role.USER.name());
-    // user.setRoles(roles);
+    Set<Role> roles = new HashSet<>();
+    //roles.add(Role.USER.name());
+    roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+    user.setRoles(roles);
 
     User savedUser = userRepository.save(user);
     return userMapper.toUserResponse(savedUser);

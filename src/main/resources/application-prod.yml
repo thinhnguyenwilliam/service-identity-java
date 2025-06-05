@@ -1,0 +1,9 @@
+# JWT
+jwt:
+  valid-expiration: 7200
+  refreshable-duration: 72000
+#  secretKey: 5Xltt3DYfCKbp+9KXVIWjj+YMaJJ+LDaffijcKxD9Vg=
+
+#  jwt.valid-expiration → JWT_VALID_EXPIRATION
+#  jwt.refreshable-duration → JWT_REFRESHABLE_DURATION
+#  jwt.secretKey → JWT_SECRETKEY

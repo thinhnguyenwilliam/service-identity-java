@@ -6,3 +6,8 @@ public class PredefinedRole {
 
     private PredefinedRole() {}
 }
+
+// privilege(permission)
+
+// user -> role: many to many
+// role -> permissions: many to many

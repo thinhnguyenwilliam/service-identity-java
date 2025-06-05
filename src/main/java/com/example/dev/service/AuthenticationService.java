@@ -1,15 +1,14 @@
 package com.example.dev.service;
 
-import com.example.dev.dto.request.AuthenticationRequest;
-import com.example.dev.dto.request.IntrospectRequest;
-import com.example.dev.dto.request.LogoutRequest;
-import com.example.dev.dto.request.RefreshTokenRequest;
+import com.example.dev.dto.request.*;
 import com.example.dev.dto.response.AuthenticationResponse;
+import com.example.dev.dto.response.ExchangeTokenResponse;
 import com.example.dev.dto.response.IntrospectResponse;
 import com.example.dev.entity.InvalidatedToken;
 import com.example.dev.entity.User;
 import com.example.dev.enums.ErrorCode;
 import com.example.dev.exception.AppException;
+import com.example.dev.feign.OutboundIdentityClient;
 import com.example.dev.repository.InvalidatedTokenRepository;
 import com.example.dev.repository.UserRepository;
 import com.nimbusds.jose.*;
@@ -38,6 +37,7 @@ public class AuthenticationService {
   UserRepository userRepository;
   PasswordEncoder passwordEncoder;
   InvalidatedTokenRepository invalidatedTokenRepository;
+  OutboundIdentityClient  outboundIdentityClient;
 
   @NonFinal
   @Value("${jwt.secretKey}")
@@ -51,6 +51,40 @@ public class AuthenticationService {
   @Value("${jwt.refreshable-duration}")
   private long refreshableDuration;
 
+  @NonFinal
+  @Value("${google.client-id}")
+  private String clientId;
+
+  @NonFinal
+  @Value("${google.client-secret}")
+  private String clientSecret;
+
+  @NonFinal
+  @Value("${google.redirect-uri}")
+  private String redirectUri;
+
+  public AuthenticationResponse outboundAuthenticate(String code) {
+    log.info("Authenticating with code: {}", code);
+
+    // Call to Google's token exchange endpoint via Feign
+    ExchangeTokenResponse response = outboundIdentityClient.exchangeCodeForToken(
+            ExchangeTokenRequest.builder()
+                    .code(code)
+                    .clientId(clientId)
+                    .clientSecret(clientSecret)
+                    .redirectUri(redirectUri)
+                    .grantType("authorization_code")
+                    .build()
+    );
+
+    log.info("Token received: {}", response.getAccessToken());
+
+    return AuthenticationResponse.builder()
+            .token(response.getAccessToken())
+            .authenticated(true)
+            .build();
+  }
+
   public IntrospectResponse introspect(IntrospectRequest request) {
     try {
       verifyToken(request.getToken(), false);
@@ -62,6 +96,7 @@ public class AuthenticationService {
   }
 
   public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    log.info("Singnkey is: {}", secret);
     User user =
         userRepository
             .findByUsername(request.getUsername())

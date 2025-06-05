@@ -35,8 +35,9 @@ public class UserService {
   RoleRepository roleRepository;
 
   public UserResponse createUser(UserCreationRequest request) {
-    if (userRepository.existsByUsername(request.getUsername()))
-      throw new AppException(ErrorCode.USER_EXISTED);
+    // unique field in DB so don't need to check here
+//    if (userRepository.existsByUsername(request.getUsername()))
+//      throw new AppException(ErrorCode.USER_EXISTED);
     //            throw new RuntimeException("ErrorCode.USER_EXISTED");
 
     User user = userMapper.toUser(request);

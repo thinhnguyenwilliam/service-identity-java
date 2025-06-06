@@ -1,14 +1,18 @@
 package com.example.dev.service;
 
+import com.example.dev.constant.PredefinedRole;
 import com.example.dev.dto.request.*;
 import com.example.dev.dto.response.AuthenticationResponse;
 import com.example.dev.dto.response.ExchangeTokenResponse;
 import com.example.dev.dto.response.IntrospectResponse;
+import com.example.dev.dto.response.OutboundUserResponse;
 import com.example.dev.entity.InvalidatedToken;
+import com.example.dev.entity.Role;
 import com.example.dev.entity.User;
 import com.example.dev.enums.ErrorCode;
 import com.example.dev.exception.AppException;
 import com.example.dev.feign.OutboundIdentityClient;
+import com.example.dev.feign.OutboundUserClient;
 import com.example.dev.repository.InvalidatedTokenRepository;
 import com.example.dev.repository.UserRepository;
 import com.nimbusds.jose.*;
@@ -16,9 +20,8 @@ import com.nimbusds.jose.crypto.*;
 import com.nimbusds.jwt.*;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,6 +41,7 @@ public class AuthenticationService {
   PasswordEncoder passwordEncoder;
   InvalidatedTokenRepository invalidatedTokenRepository;
   OutboundIdentityClient  outboundIdentityClient;
+  OutboundUserClient outboundUserClient;
 
   @NonFinal
   @Value("${jwt.secretKey}")
@@ -78,6 +82,26 @@ public class AuthenticationService {
     );
 
     log.info("Token received: {}", response.getAccessToken());
+    // Call userinfo endpoint
+    OutboundUserResponse userInfo = outboundUserClient.getUserInfo("Bearer " + response.getAccessToken(), "json");
+
+    //log.info("User info received: {}", userInfo);
+
+    Set<Role> roles = new HashSet<>();
+    roles.add(Role.builder()
+            .name(PredefinedRole.USER_ROLE)
+            .build());
+
+    User user = userRepository.findByUsername(userInfo.getEmail())
+            .orElseGet(() -> userRepository.save(
+                    User.builder()
+                            .username(userInfo.getEmail())
+                            .firstName(userInfo.getGivenName())
+                            .lastName(userInfo.getFamilyName())
+                            .roles(roles)
+                            .build()
+            ));
+
 
     return AuthenticationResponse.builder()
             .token(response.getAccessToken())

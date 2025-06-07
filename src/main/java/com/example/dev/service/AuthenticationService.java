@@ -95,16 +95,16 @@ public class AuthenticationService {
     User user = userRepository.findByUsername(userInfo.getEmail())
             .orElseGet(() -> userRepository.save(
                     User.builder()
-                            .username(userInfo.getEmail())
+                            .username(userInfo.getEmail().toLowerCase())
                             .firstName(userInfo.getGivenName())
                             .lastName(userInfo.getFamilyName())
                             .roles(roles)
                             .build()
             ));
-
+    String token=generateToken(user);
 
     return AuthenticationResponse.builder()
-            .token(response.getAccessToken())
+            .token(token)
             .authenticated(true)
             .build();
   }

@@ -27,7 +27,8 @@ public class SecurityConfig {
     "/api/auth/introspect",
     "/api/auth/logout",
     "/api/auth/refresh", "/api/auth/outbound/authentication",
-          "/api/students/**","/api/courses/**","/api/enrollments/**",
+          "/api/students/**","/api/courses/**","/api/enrollments/**","/api/departments/**",
+          "/api/employees/**",
 
     // endpoints are just only unit test
     //"api/users/**",

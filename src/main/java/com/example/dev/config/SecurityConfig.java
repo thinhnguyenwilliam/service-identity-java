@@ -27,6 +27,7 @@ public class SecurityConfig {
     "/api/auth/introspect",
     "/api/auth/logout",
     "/api/auth/refresh", "/api/auth/outbound/authentication",
+          "/api/students/**","/api/courses/**","/api/enrollments/**",
 
     // endpoints are just only unit test
     //"api/users/**",
@@ -50,6 +51,7 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_URLS)
                     .permitAll()
+                        .requestMatchers(PUBLIC_URLS).permitAll()
                     // .requestMatchers(HttpMethod.GET, "/api/users").hasRole(Role.ADMIN.name()) //
                     // ROLE_ADMIN, Authorization following endpoint
                     .anyRequest()

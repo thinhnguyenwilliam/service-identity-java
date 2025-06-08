@@ -1,6 +1,7 @@
 package com.example.dev.service;
 
 import com.example.dev.constant.PredefinedRole;
+import com.example.dev.dto.request.PasswordCreationRequest;
 import com.example.dev.dto.request.UserCreationRequest;
 import com.example.dev.dto.request.UserUpdateRequest;
 import com.example.dev.dto.response.UserResponse;
@@ -14,6 +15,8 @@ import com.example.dev.repository.UserRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +26,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -85,10 +89,35 @@ public class UserService {
   public UserResponse getMyInfo() {
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-    User user =
-        userRepository
+    User user = userRepository
             .findByUsername(username)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-    return userMapper.toUserResponse(user);
+
+    UserResponse userResponse = userMapper.toUserResponse(user);
+
+    // Set noPassword = true if password is null or blank
+    userResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));
+
+    return userResponse;
   }
+
+  public void createPassword(PasswordCreationRequest request) {
+    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    User user = userRepository
+            .findByUsername(username)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+    if (StringUtils.hasText(user.getPassword())) {
+      throw new AppException(ErrorCode.PASSWORD_EXISTED);
+    }
+
+    String rawPassword = request.getPassword().trim();
+    user.setPassword(passwordEncoder.encode(rawPassword));
+    userRepository.save(user);
+
+    log.info("Password successfully created for user: {}", username);
+  }
+
+
+
 }

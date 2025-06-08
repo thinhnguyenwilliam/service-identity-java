@@ -21,7 +21,9 @@ public enum ErrorCode {
       HttpStatus.INTERNAL_SERVER_ERROR),
   UNAUTHORIZED(1008, "You do not have permission", HttpStatus.FORBIDDEN),
   DATA_INTEGRITY(1009, "Many to Many relationship", HttpStatus.INTERNAL_SERVER_ERROR),
-  INVALID_DOB(1010, "User must be at least {min} years old", HttpStatus.BAD_REQUEST);
+  INVALID_DOB(1010, "User must be at least {min} years old", HttpStatus.BAD_REQUEST),
+  PASSWORD_EXISTED(1011, "password is existed", HttpStatus.BAD_REQUEST)
+  ;
 
   private final int code;
   private final String message;

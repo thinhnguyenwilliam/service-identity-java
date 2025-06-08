@@ -29,6 +29,13 @@ public class SecurityConfig {
     "/api/auth/refresh", "/api/auth/outbound/authentication",
           "/api/students/**","/api/courses/**","/api/enrollments/**","/api/departments/**",
           "/api/employees/**",
+          // Swagger/OpenAPI URLs
+          "/swagger-ui.html",
+          "/swagger-ui/**",
+          "/v3/api-docs/**",
+          "/v3/api-docs.yaml",
+          "/swagger-resources/**",
+          "/webjars/**"
 
     // endpoints are just only unit test
     //"api/users/**",
